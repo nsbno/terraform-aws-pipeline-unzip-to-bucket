@@ -24,6 +24,16 @@ logger.setLevel(logging.DEBUG)
 
 
 def get_content_type(filename):
+    """Finds the content type of a typical website file based on its extension.
+
+    Args:
+        filename: A string representing the filename.
+
+    Returns:
+        The content type of the file if the file is a typical
+        website file, or a default content type if not.
+    """
+
     content_types = {
         "bmp": "image/bmp",
         "css": "text/css",
@@ -81,6 +91,20 @@ def get_file_from_s3(s3_bucket, s3_key, s3_version_id=None):
 
 
 def find_bucket_by_prefix(prefix, boto_kwargs):
+    """Finds one S3 bucket with a name that matches a prefix.
+
+    Args:
+        prefix: The name prefix to use when finding the S3 bucket.
+        boto_kwargs: A dictionary containing arguments that will
+            be passed into boto3 (e.g., credentials).
+
+    Returns:
+        The name of the S3 bucket that matches the given prefix.
+
+    Raises:
+        Exception: Did not find exactly 1 matching buckets.
+    """
+
     s3 = boto3.client("s3", **boto_kwargs)
     response = s3.list_buckets(**boto_kwargs)
     buckets = list(
@@ -102,6 +126,16 @@ def find_bucket_by_prefix(prefix, boto_kwargs):
 
 
 def unzip_and_upload_to_target_bucket(zip_file, target_bucket, boto_kwargs):
+    """Unzips a ZIP file and uploads it to an S3 bucket.
+
+    Args:
+        zip_file: A bytes buffer containing the ZIP file.
+        target_bucket: The name of the S3 bucket to upload the contents of the
+            ZIP file to.
+        boto_kwargs: A dictionary containing arguments that will
+            be passed into boto3 (e.g., credentials).
+    """
+
     s3 = boto3.client("s3", **boto_kwargs)
     with zipfile.ZipFile(zip_file, "r") as z:
         contents = z.namelist()
