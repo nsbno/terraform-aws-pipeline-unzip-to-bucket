@@ -1,0 +1,14 @@
+# Terraform
+**/.terraform
+**/*.tfstate*
+crash.log
+
+# IDE folders
+.idea/
+.vim/
+
+# Lambda Zips
+src/*.zip
+
+# Python virtualenvs
+**/.env/
