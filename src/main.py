@@ -5,6 +5,8 @@
 # Distributed under terms of the MIT license.
 
 """
+Downloads a .zip-file from an S3 bucket in account A,
+and unzips the contents to an S3 bucket in account B
 """
 
 import boto3
@@ -140,7 +142,7 @@ def lambda_handler(event, context):
     cross_account_role = event["cross_account_role"]
     s3_source_bucket = event["s3_source_bucket"]
     s3_source_key = event["s3_source_key"]
-    s3_target_bucket = event["s3_target_bucket"]
+    s3_target_bucket_prefix = event["s3_target_bucket_prefix"]
 
     credentials = assume_role(account_id, cross_account_role)
     boto_kwargs = {
@@ -150,7 +152,9 @@ def lambda_handler(event, context):
         "region_name": region,
     }
 
-    # target_bucket = find_bucket_by_prefix(s3_target_bucket, boto_kwargs)
+    s3_target_bucket = find_bucket_by_prefix(
+        s3_target_bucket_prefix, boto_kwargs
+    )
 
     zip_file = get_file_from_s3(s3_source_bucket, s3_source_key)
     unzip_and_upload_to_target_bucket(zip_file, s3_target_bucket, boto_kwargs)
