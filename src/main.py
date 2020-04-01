@@ -193,10 +193,7 @@ def lambda_handler(event, context):
     for pair in s3_source_target_pairs:
         s3_source_bucket = pair["s3_source_bucket"]
         s3_source_key = pair["s3_source_key"]
-        s3_target_bucket_prefix = pair["s3_target_bucket_prefix"]
-        s3_target_bucket = find_bucket_by_prefix(
-            s3_target_bucket_prefix, boto_kwargs
-        )
+        s3_target_bucket = pair["s3_target_bucket"]
 
         zip_file = get_file_from_s3(s3_source_bucket, s3_source_key)
         unzip_and_upload_to_target_bucket(
