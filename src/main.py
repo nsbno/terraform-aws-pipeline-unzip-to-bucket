@@ -180,9 +180,7 @@ def lambda_handler(event, context):
     region = os.environ["AWS_REGION"]
     account_id = event["account_id"]
     cross_account_role = event["cross_account_role"]
-    s3_source_bucket = event["s3_source_bucket"]
-    s3_source_key = event["s3_source_key"]
-    s3_target_bucket_prefix = event["s3_target_bucket_prefix"]
+    s3_source_target_pairs = event["s3_source_target_pairs"]
 
     credentials = assume_role(account_id, cross_account_role)
     boto_kwargs = {
@@ -192,11 +190,17 @@ def lambda_handler(event, context):
         "region_name": region,
     }
 
-    s3_target_bucket = find_bucket_by_prefix(
-        s3_target_bucket_prefix, boto_kwargs
-    )
+    for pair in s3_source_target_pairs:
+        s3_source_bucket = pair["s3_source_bucket"]
+        s3_source_key = pair["s3_source_key"]
+        s3_target_bucket_prefix = pair["s3_target_bucket_prefix"]
+        s3_target_bucket = find_bucket_by_prefix(
+            s3_target_bucket_prefix, boto_kwargs
+        )
 
-    zip_file = get_file_from_s3(s3_source_bucket, s3_source_key)
-    unzip_and_upload_to_target_bucket(zip_file, s3_target_bucket, boto_kwargs)
+        zip_file = get_file_from_s3(s3_source_bucket, s3_source_key)
+        unzip_and_upload_to_target_bucket(
+            zip_file, s3_target_bucket, boto_kwargs
+        )
 
     return
