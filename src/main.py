@@ -80,12 +80,18 @@ def assume_role(account_id, account_role):
 
 def get_file_from_s3(s3_bucket, s3_key, s3_version_id=None):
     s3 = boto3.client("s3")
-    if s3_version_id is None:
-        response = s3.get_object(Bucket=s3_bucket, Key=s3_key)
-    else:
-        response = s3.get_object(
-            Bucket=s3_bucket, Key=s3_key, VersionId=s3_version_id
+    try:
+        if s3_version_id is None:
+            response = s3.get_object(Bucket=s3_bucket, Key=s3_key)
+        else:
+            response = s3.get_object(
+                Bucket=s3_bucket, Key=s3_key, VersionId=s3_version_id
+            )
+    except Exception:
+        logger.exception(
+            "Failed to download file '%s/%s' from S3", s3_bucket, s3_key
         )
+        raise
     file = io.BytesIO(response["Body"].read())
     return file
 
