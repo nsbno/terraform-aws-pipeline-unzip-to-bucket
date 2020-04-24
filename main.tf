@@ -22,7 +22,7 @@ resource "aws_lambda_function" "pipeline_unzip_to_bucket" {
   runtime          = "python3.7"
   filename         = data.archive_file.lambda_src.output_path
   source_code_hash = filebase64sha256(data.archive_file.lambda_src.output_path)
-  timeout          = 10
+  timeout          = var.lambda_timeout
   tags             = var.tags
 }
 
