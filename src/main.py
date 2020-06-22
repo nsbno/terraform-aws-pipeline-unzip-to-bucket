@@ -131,7 +131,9 @@ def find_bucket_by_prefix(prefix, boto_kwargs):
     return buckets[0]
 
 
-def unzip_and_upload_to_target_bucket(zip_file, target_bucket, boto_kwargs):
+def unzip_and_upload_to_target_bucket(
+    zip_file, target_bucket, target_prefix, boto_kwargs
+):
     """Unzips a ZIP file and uploads it to an S3 bucket.
 
     Args:
@@ -150,7 +152,7 @@ def unzip_and_upload_to_target_bucket(zip_file, target_bucket, boto_kwargs):
         responses = [
             s3.put_object(
                 Bucket=target_bucket,
-                Key=f,
+                Key=f"{target_prefix}/{f}",
                 Body=z.open(f),
                 ContentType=get_content_type(f),
             )
@@ -179,10 +181,10 @@ def lambda_handler(event, context):
 
     region = os.environ["AWS_REGION"]
     account_id = event["account_id"]
-    cross_account_role = event["cross_account_role"]
+    role_to_assume = event["role_to_assume"]
     s3_source_target_pairs = event["s3_source_target_pairs"]
 
-    credentials = assume_role(account_id, cross_account_role)
+    credentials = assume_role(account_id, role_to_assume)
     boto_kwargs = {
         "aws_access_key_id": credentials["AccessKeyId"],
         "aws_secret_access_key": credentials["SecretAccessKey"],
@@ -193,11 +195,15 @@ def lambda_handler(event, context):
     for pair in s3_source_target_pairs:
         s3_source_bucket = pair["s3_source_bucket"]
         s3_source_key = pair["s3_source_key"]
+        s3_source_version = pair.get("s3_source_version", None)
         s3_target_bucket = pair["s3_target_bucket"]
+        s3_target_prefix = s3_source_version or ""
 
-        zip_file = get_file_from_s3(s3_source_bucket, s3_source_key)
+        zip_file = get_file_from_s3(
+            s3_source_bucket, s3_source_key, s3_source_version
+        )
         unzip_and_upload_to_target_bucket(
-            zip_file, s3_target_bucket, boto_kwargs
+            zip_file, s3_target_bucket, s3_target_prefix, boto_kwargs
         )
 
     return
