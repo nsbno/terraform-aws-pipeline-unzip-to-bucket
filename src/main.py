@@ -173,7 +173,8 @@ def unzip_and_upload_to_target_bucket(
         )
         logger.debug("Deleting old files from S3: '%s'", old_files)
         s3.delete_objects(
-            Delete={"Objects": [{"Key": key} for key in old_files]}
+            Bucket=target_bucket,
+            Delete={"Objects": [{"Key": key} for key in old_files]},
         )
 
 
