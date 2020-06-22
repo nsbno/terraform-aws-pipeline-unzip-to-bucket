@@ -171,10 +171,10 @@ def unzip_and_upload_to_target_bucket(
             "Found existing files in target bucket that were not in zip file: '%s'",
             old_files,
         )
-        # logger.debug("Deleting old files from S3: '%s'", old_files)
-        # bucket.delete_objects(
-        #    Delete={"Objects": [{"Key": key} for key in old_files]}
-        # )
+        logger.debug("Deleting old files from S3: '%s'", old_files)
+        s3.delete_objects(
+            Delete={"Objects": [{"Key": key} for key in old_files]}
+        )
 
 
 def lambda_handler(event, context):
