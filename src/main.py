@@ -153,7 +153,7 @@ def unzip_and_upload_to_target_bucket(
         responses = [
             s3.put_object(
                 Bucket=target_bucket,
-                Key=f"{target_prefix}/{f}",
+                Key=f"{target_prefix and target_prefix + '/'}{f}",
                 Body=z.open(f),
                 ContentType=get_content_type(f),
             )
