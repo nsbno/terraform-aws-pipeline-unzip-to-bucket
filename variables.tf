@@ -14,3 +14,9 @@ variable "lambda_timeout" {
   type        = number
   default     = 10
 }
+
+variable "trusted_accounts" {
+  description = "A list of AWS account IDs that are allowed to invoke the function."
+  type        = list(string)
+  default     = []
+}
