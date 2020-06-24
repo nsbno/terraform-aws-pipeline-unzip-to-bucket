@@ -179,6 +179,16 @@ def unzip_and_upload_to_target_bucket(
             )
 
 
+def get_alias_from_arn(arn):
+    """Return the alias (if any) used for invoking the function"""
+    alias = arn.split(":")[-1] if len(arn.split(":")) == 8 else None
+    if alias:
+        logger.debug("Lambda was invoked using alias '%s'", alias)
+    else:
+        logger.debug("Lambda was not invoked by an alias")
+    return alias
+
+
 def lambda_handler(event, context):
     logger.debug("Lambda triggered with input data '%s'", json.dumps(event))
 
@@ -186,6 +196,18 @@ def lambda_handler(event, context):
     account_id = event["account_id"]
     role_to_assume = event["role_to_assume"]
     s3_source_target_pairs = event["s3_source_target_pairs"]
+
+    lambda_alias = get_alias_from_arn(context.invoked_function_arn)
+    if lambda_alias:
+        invoked_by = lambda_alias.split("account-")[-1]
+        logger.debug("Lambda was invoked by account with id '%s'", invoked_by)
+        if invoked_by and invoked_by != account_id:
+            logger.error(
+                "Lambda was invoked by account '%s', but wants to assume a role in account '%s'",
+                invoked_by,
+                account_id,
+            )
+            raise ValueError()
 
     credentials = assume_role(account_id, role_to_assume)
     boto_kwargs = {
