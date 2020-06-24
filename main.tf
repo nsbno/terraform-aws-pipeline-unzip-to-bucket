@@ -48,6 +48,7 @@ resource "aws_lambda_alias" "this" {
 resource "aws_lambda_permission" "this" {
   for_each      = toset(var.trusted_accounts)
   action        = "lambda:InvokeFunction"
+  qualifier     = aws_lambda_alias.this[each.key].name
   function_name = aws_lambda_function.pipeline_unzip_to_bucket.function_name
   principal     = "arn:aws:iam::${each.key}:root"
 }
