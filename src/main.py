@@ -132,15 +132,21 @@ def find_bucket_by_prefix(prefix, boto_kwargs):
 
 
 def unzip_and_upload_to_target_bucket(
-    zip_file, target_bucket, target_prefix="", boto_kwargs={}
+    zip_file,
+    target_bucket,
+    target_prefix="",
+    delete_old_objects=False,
+    boto_kwargs={},
 ):
-    """Unzips a ZIP file and uploads it to an S3 bucket.
+    """Unzips a ZIP file and uploads it to an S3 bucket, optionally deleting old objects upon successful upload.
 
     Args:
         zip_file: A bytes buffer containing the ZIP file.
         target_bucket: The name of the S3 bucket to upload the contents of the
             ZIP file to.
-        target_prefix: An optional prefix to use when uploading files to S3
+        target_prefix: An optional prefix to use when uploading files to the target S3 bucket.
+        delete_old_objects: Whether to delete all objects in the target bucket
+            that were not part of the ZIP file.
         boto_kwargs: An optional dictionary containing arguments that will
             be passed into boto3 (e.g., credentials).
     """
@@ -171,7 +177,7 @@ def unzip_and_upload_to_target_bucket(
             "Found existing files in target bucket that were not in zip file: '%s'",
             old_files,
         )
-        if len(old_files):
+        if delete_old_objects and len(old_files):
             logger.debug("Deleting old files from S3: '%s'", old_files)
             s3.delete_objects(
                 Bucket=target_bucket,
@@ -227,7 +233,10 @@ def lambda_handler(event, context):
             s3_source_bucket, s3_source_key, s3_source_version
         )
         unzip_and_upload_to_target_bucket(
-            zip_file, s3_target_bucket, boto_kwargs=boto_kwargs
+            zip_file,
+            s3_target_bucket,
+            delete_old_objects=True,
+            boto_kwargs=boto_kwargs,
         )
 
     return
