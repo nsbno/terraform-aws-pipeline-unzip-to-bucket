@@ -48,7 +48,7 @@ def get_content_type(filename):
         "png": "image/png",
         "svg": "image/svg+xml",
     }
-    extension = filename.rsplit(".")[-1]
+    extension = filename.rsplit(".")[-1].lower()
     content_type = content_types.get(extension, "application/octet-stream")
     return content_type
 
