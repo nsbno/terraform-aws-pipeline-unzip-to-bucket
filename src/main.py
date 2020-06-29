@@ -1,12 +1,11 @@
 #!/usr/bin/env python3.7
 #
-# Copyright (C) 2020 Erlend Ekern <dev@ekern.me>
+# Copyright (C) 2020 Vy
 #
-# Distributed under terms of the MIT license.
+# Distributed under terms of the MIT license.
 
 """
-Downloads a .zip-file from an S3 bucket in account A,
-and unzips the contents to an S3 bucket in account B
+Downloads a .zip-file from one S3 bucket and unzips the contents to another.
 """
 
 import boto3

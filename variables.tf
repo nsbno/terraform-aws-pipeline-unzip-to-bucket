@@ -10,7 +10,7 @@ variable "tags" {
 }
 
 variable "lambda_timeout" {
-  description = "The maximum number of seconds the Lambda is allowed to run"
+  description = "The maximum number of seconds the Lambda is allowed to run."
   type        = number
   default     = 10
 }
