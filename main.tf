@@ -36,3 +36,19 @@ resource "aws_iam_role_policy" "logs_to_lambda" {
   policy = data.aws_iam_policy_document.logs_for_lambda.json
   role   = aws_iam_role.lambda_exec.id
 }
+
+resource "aws_lambda_alias" "this" {
+  for_each         = toset(var.trusted_accounts)
+  name             = "account-${each.key}"
+  description      = "A Lambda alias to be used when the function is invoked from account with id ${each.key}"
+  function_name    = aws_lambda_function.pipeline_unzip_to_bucket.function_name
+  function_version = "$LATEST"
+}
+
+resource "aws_lambda_permission" "this" {
+  for_each      = toset(var.trusted_accounts)
+  action        = "lambda:InvokeFunction"
+  qualifier     = aws_lambda_alias.this[each.key].name
+  function_name = aws_lambda_function.pipeline_unzip_to_bucket.function_name
+  principal     = "arn:aws:iam::${each.key}:root"
+}
