@@ -236,7 +236,7 @@ def lambda_handler(event, context):
                     logger.exception(
                         "Exceeded number of retries for bucket access"
                     )
-                    raise ()
+                    raise
                 logger.warning("Sleeping for 5 seconds, and then retrying")
                 time.sleep(5)
                 retries += 1
