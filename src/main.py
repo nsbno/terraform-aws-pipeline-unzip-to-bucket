@@ -151,6 +151,22 @@ def unzip_and_upload_to_target_bucket(
     """
 
     s3 = boto3.client("s3", **boto_kwargs)
+    retries = 0
+    while True:
+        try:
+            s3.head_bucket(Bucket=target_bucket)
+            break
+        except botocore.exceptions.ClientError:
+            logger.warning("Failed to access bucket '%s'", target_bucket)
+            if retries > 5:
+                logger.exception(
+                    "Exceeded number of retries for bucket access"
+                )
+                raise ()
+            logger.warning("Sleeping for 2 seconds, and then retrying")
+            time.sleep(2)
+            retries += 1
+
     with zipfile.ZipFile(zip_file, "r") as z:
         contents = z.namelist()
         logger.debug("Found zip contents '%s'", contents)
