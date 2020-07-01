@@ -163,8 +163,8 @@ def unzip_and_upload_to_target_bucket(
                     "Exceeded number of retries for bucket access"
                 )
                 raise ()
-            logger.warning("Sleeping for 2 seconds, and then retrying")
-            time.sleep(2)
+            logger.warning("Sleeping for 5 seconds, and then retrying")
+            time.sleep(5)
             retries += 1
 
     with zipfile.ZipFile(zip_file, "r") as z:
