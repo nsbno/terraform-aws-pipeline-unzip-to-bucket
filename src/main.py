@@ -247,6 +247,7 @@ def lambda_handler(event, context):
                     "aws_session_token": credentials["SessionToken"],
                     "region_name": region,
                 }
+                s3 = boto3.client("s3", **boto_kwargs)
 
     for pair in s3_source_target_pairs:
         s3_source_bucket = pair["s3_source_bucket"]
