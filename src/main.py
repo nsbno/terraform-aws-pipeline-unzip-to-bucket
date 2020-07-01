@@ -215,19 +215,19 @@ def lambda_handler(event, context):
             )
             raise ValueError()
 
-    credentials = assume_role(account_id, role_to_assume)
-    boto_kwargs = {
-        "aws_access_key_id": credentials["AccessKeyId"],
-        "aws_secret_access_key": credentials["SecretAccessKey"],
-        "aws_session_token": credentials["SessionToken"],
-        "region_name": region,
-    }
     for pair in s3_source_target_pairs:
         target_bucket = pair["s3_target_bucket"]
         retries = 0
-        s3 = boto3.client("s3", **boto_kwargs)
         while True:
             try:
+                credentials = assume_role(account_id, role_to_assume)
+                boto_kwargs = {
+                    "aws_access_key_id": credentials["AccessKeyId"],
+                    "aws_secret_access_key": credentials["SecretAccessKey"],
+                    "aws_session_token": credentials["SessionToken"],
+                    "region_name": region,
+                }
+                s3 = boto3.client("s3", **boto_kwargs)
                 s3.head_bucket(Bucket=target_bucket)
                 break
             except botocore.exceptions.ClientError:
@@ -240,14 +240,6 @@ def lambda_handler(event, context):
                 logger.warning("Sleeping for 5 seconds, and then retrying")
                 time.sleep(5)
                 retries += 1
-                credentials = assume_role(account_id, role_to_assume)
-                boto_kwargs = {
-                    "aws_access_key_id": credentials["AccessKeyId"],
-                    "aws_secret_access_key": credentials["SecretAccessKey"],
-                    "aws_session_token": credentials["SessionToken"],
-                    "region_name": region,
-                }
-                s3 = boto3.client("s3", **boto_kwargs)
 
     for pair in s3_source_target_pairs:
         s3_source_bucket = pair["s3_source_bucket"]
