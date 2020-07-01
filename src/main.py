@@ -169,31 +169,34 @@ def unzip_and_upload_to_target_bucket(
             for i, f in enumerate(zip_files)
         ]
         logger.debug("Received upload responses from S3: '%s'", responses)
-        response = s3.list_objects_v2(Bucket=target_bucket)
-        objects = response["Contents"]
-        while response["IsTruncated"]:
+        if delete_old_objects:
             response = s3.list_objects_v2(
-                Bucket=target_bucket,
-                ContinuationToken=response["NextContinuationToken"],
-                Prefix=prefix,
+                Bucket=target_bucket, Prefix=target_prefix
             )
-            objects = objects + response["Contents"]
-        old_files = list(
-            filter(
-                lambda key: key not in upload_keys,
-                map(lambda file: file["Key"], objects),
-            ),
-        )
-        logger.debug(
-            "Found existing files in target bucket that were not in zip file: '%s'",
-            old_files,
-        )
-        if delete_old_objects and len(old_files):
+            objects = response["Contents"]
+            while response["IsTruncated"]:
+                response = s3.list_objects_v2(
+                    Bucket=target_bucket,
+                    ContinuationToken=response["NextContinuationToken"],
+                    Prefix=target_prefix,
+                )
+                objects = objects + response["Contents"]
+            old_files = list(
+                filter(
+                    lambda key: key not in upload_keys,
+                    map(lambda file: file["Key"], objects),
+                ),
+            )
+            logger.debug(
+                "Found existing files in target bucket that were not in zip file: '%s'",
+                old_files,
+            )
             logger.debug("Deleting old files from S3: '%s'", old_files)
-            s3.delete_objects(
-                Bucket=target_bucket,
-                Delete={"Objects": [{"Key": key} for key in old_files]},
-            )
+            if len(old_files):
+                s3.delete_objects(
+                    Bucket=target_bucket,
+                    Delete={"Objects": [{"Key": key} for key in old_files]},
+                )
 
 
 def get_alias_from_arn(arn):
