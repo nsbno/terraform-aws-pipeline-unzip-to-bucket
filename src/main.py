@@ -153,24 +153,35 @@ def unzip_and_upload_to_target_bucket(
     s3 = boto3.client("s3", **boto_kwargs)
 
     with zipfile.ZipFile(zip_file, "r") as z:
-        contents = z.namelist()
-        logger.debug("Found zip contents '%s'", contents)
+        zip_files = z.namelist()
+        upload_keys = [
+            f"{target_prefix and target_prefix + '/'}{f}" for f in zip_files
+        ]
+        logger.debug("Found zip contents '%s'", zip_files)
         logger.debug("Uploading zip contents to S3 bucket '%s'", target_bucket)
         responses = [
             s3.put_object(
                 Bucket=target_bucket,
-                Key=f"{target_prefix and target_prefix + '/'}{f}",
+                Key=upload_keys[i],
                 Body=z.open(f),
                 ContentType=get_content_type(f),
             )
-            for f in contents
+            for i, f in enumerate(zip_files)
         ]
         logger.debug("Received upload responses from S3: '%s'", responses)
-        bucket_contents = s3.list_objects_v2(Bucket=target_bucket)["Contents"]
+        response = s3.list_objects_v2(Bucket=target_bucket)
+        objects = response["Contents"]
+        while response["IsTruncated"]:
+            response = s3.list_objects_v2(
+                Bucket=target_bucket,
+                ContinuationToken=response["NextContinuationToken"],
+                Prefix=prefix,
+            )
+            objects = objects + response["Contents"]
         old_files = list(
             filter(
-                lambda key: key not in contents,
-                map(lambda file: file["Key"], bucket_contents),
+                lambda key: key not in upload_keys,
+                map(lambda file: file["Key"], objects),
             ),
         )
         logger.debug(
