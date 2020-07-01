@@ -56,7 +56,7 @@ def assume_role(account_id, account_role):
     sts_client = boto3.client("sts")
     role_arn = f"arn:aws:iam::{account_id}:role/{account_role}"
     assuming_role = True
-    retry_wait_in_seconds = 15
+    retry_wait_in_seconds = 5
     while assuming_role:
         try:
             logger.info("Trying to assume role with arn '%s'", role_arn)
