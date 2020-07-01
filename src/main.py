@@ -157,8 +157,11 @@ def unzip_and_upload_to_target_bucket(
         upload_keys = [
             f"{target_prefix and target_prefix + '/'}{f}" for f in zip_files
         ]
-        logger.debug("Found zip contents '%s'", zip_files)
-        logger.debug("Uploading zip contents to S3 bucket '%s'", target_bucket)
+        logger.debug("Found zip files '%s'", zip_files)
+        logger.info(
+            "Uploading zip files to '%s'",
+            f"{target_bucket}{target_prefix and target_prefix + '/'}",
+        )
         responses = [
             s3.put_object(
                 Bucket=target_bucket,
@@ -188,10 +191,9 @@ def unzip_and_upload_to_target_bucket(
                 ),
             )
             logger.debug(
-                "Found existing files in target bucket that were not in zip file: '%s'",
+                "Deleting files from target bucket that were not in zip file: '%s'",
                 old_files,
             )
-            logger.debug("Deleting old files from S3: '%s'", old_files)
             if len(old_files):
                 s3.delete_objects(
                     Bucket=target_bucket,
